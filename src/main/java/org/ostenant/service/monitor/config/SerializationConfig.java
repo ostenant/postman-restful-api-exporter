@@ -1,4 +1,4 @@
-package com.icekredit.service.monitor.config;
+package org.ostenant.service.monitor.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;

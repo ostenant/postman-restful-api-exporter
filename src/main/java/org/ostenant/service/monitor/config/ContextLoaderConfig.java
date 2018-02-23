@@ -1,14 +1,14 @@
-package com.icekredit.service.monitor.config;
+package org.ostenant.service.monitor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.icekredit.service.monitor.entitiy.Variable;
-import com.icekredit.service.monitor.entitiy.collection.CollectionItem;
-import com.icekredit.service.monitor.entitiy.collection.CollectionItemEvent;
-import com.icekredit.service.monitor.entitiy.collection.CollectionManager;
-import com.icekredit.service.monitor.entitiy.environment.EnvironmentVariable;
-import com.icekredit.service.monitor.entitiy.environment.EnvironmentVariableManager;
-import com.icekredit.service.monitor.entitiy.global.GlobalVariable;
-import com.icekredit.service.monitor.entitiy.global.GlobalVariableManager;
+import org.ostenant.service.monitor.entitiy.Variable;
+import org.ostenant.service.monitor.entitiy.collection.CollectionItem;
+import org.ostenant.service.monitor.entitiy.collection.CollectionItemEvent;
+import org.ostenant.service.monitor.entitiy.collection.CollectionManager;
+import org.ostenant.service.monitor.entitiy.environment.EnvironmentVariable;
+import org.ostenant.service.monitor.entitiy.environment.EnvironmentVariableManager;
+import org.ostenant.service.monitor.entitiy.global.GlobalVariable;
+import org.ostenant.service.monitor.entitiy.global.GlobalVariableManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;

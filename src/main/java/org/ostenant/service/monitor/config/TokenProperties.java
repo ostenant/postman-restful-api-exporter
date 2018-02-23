@@ -1,4 +1,4 @@
-package com.icekredit.service.monitor.config;
+package org.ostenant.service.monitor.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

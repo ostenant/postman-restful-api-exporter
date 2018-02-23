@@ -1,4 +1,4 @@
-package com.icekredit.service.monitor.entitiy;
+package org.ostenant.service.monitor.entitiy;
 
 public class MethodType {
 

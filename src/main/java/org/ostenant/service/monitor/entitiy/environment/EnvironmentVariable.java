@@ -1,14 +1,14 @@
-package com.icekredit.service.monitor.entitiy.collection;
+package org.ostenant.service.monitor.entitiy.environment;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.icekredit.service.monitor.entitiy.Variable;
+import org.ostenant.service.monitor.entitiy.Variable;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-public class CollectionVariable extends Variable {
+public class EnvironmentVariable extends Variable {
 
     @Override
     public String toString() {
-        return "CollectionVariable{" +
+        return "EnvironmentVariable{" +
                 "key='" + key + '\'' +
                 ", value='" + value + '\'' +
                 ", enabled=" + enabled +

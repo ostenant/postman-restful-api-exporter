@@ -1,4 +1,4 @@
-package com.icekredit.service.monitor.entitiy;
+package org.ostenant.service.monitor.entitiy;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;

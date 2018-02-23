@@ -1,6 +1,7 @@
-package com.icekredit.service.monitor.entitiy.global;
+package org.ostenant.service.monitor.entitiy.environment;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-public class GlobalVariableManager implements Serializable {
+public class EnvironmentVariableManager implements Serializable {
 
     @JsonProperty("id")
     private String id;
@@ -25,21 +26,25 @@ public class GlobalVariableManager implements Serializable {
     @JsonProperty("_postman_exported_using")
     private String postmanExportedUsing;
 
-    @JsonProperty("values")
-    private List<GlobalVariable> variable = new ArrayList<>();
+    @JsonProperty("timestamp")
+    private Long timestamp;
 
+    @JsonProperty("values")
+    private List<EnvironmentVariable> variable = new ArrayList<>();
+
+    @JsonIgnore
     private boolean isFound = true;
 
-    private static final GlobalVariableManager DEFAULT = new GlobalVariableManager(false);
+    private static final EnvironmentVariableManager DEFAULT = new EnvironmentVariableManager(false);
 
-    public GlobalVariableManager() {
+    public EnvironmentVariableManager() {
     }
 
-    public GlobalVariableManager(boolean isFound) {
+    public EnvironmentVariableManager(boolean isFound) {
         this.isFound = isFound;
     }
 
-    public static GlobalVariableManager defaultOne() {
+    public static EnvironmentVariableManager defaultOne() {
         return DEFAULT;
     }
 
@@ -83,11 +88,19 @@ public class GlobalVariableManager implements Serializable {
         this.postmanExportedUsing = postmanExportedUsing;
     }
 
-    public List<GlobalVariable> getVariable() {
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public List<EnvironmentVariable> getVariable() {
         return variable;
     }
 
-    public void setVariable(List<GlobalVariable> variable) {
+    public void setVariable(List<EnvironmentVariable> variable) {
         this.variable = variable;
     }
 
@@ -101,7 +114,7 @@ public class GlobalVariableManager implements Serializable {
 
     @Override
     public String toString() {
-        return "GlobalVariableManager{" +
+        return "EnvironmentVariableManager{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", postmanVariableScope='" + postmanVariableScope + '\'' +

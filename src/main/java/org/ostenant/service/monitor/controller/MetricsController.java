@@ -1,15 +1,15 @@
-package com.icekredit.service.monitor.controller;
+package org.ostenant.service.monitor.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.icekredit.service.monitor.config.ExporterPathProperties;
-import com.icekredit.service.monitor.config.TokenProperties;
-import com.icekredit.service.monitor.entitiy.MapBean;
-import com.icekredit.service.monitor.entitiy.MethodType;
-import com.icekredit.service.monitor.entitiy.TokenResponse;
-import com.icekredit.service.monitor.entitiy.collection.CollectionItem;
-import com.icekredit.service.monitor.entitiy.collection.CollectionItemEvent;
-import com.icekredit.service.monitor.entitiy.collection.CollectionItemRequest;
-import com.icekredit.service.monitor.entitiy.collection.CollectionManager;
+import org.ostenant.service.monitor.config.ExporterPathProperties;
+import org.ostenant.service.monitor.config.TokenProperties;
+import org.ostenant.service.monitor.entitiy.MapBean;
+import org.ostenant.service.monitor.entitiy.MethodType;
+import org.ostenant.service.monitor.entitiy.TokenResponse;
+import org.ostenant.service.monitor.entitiy.collection.CollectionItem;
+import org.ostenant.service.monitor.entitiy.collection.CollectionItemEvent;
+import org.ostenant.service.monitor.entitiy.collection.CollectionItemRequest;
+import org.ostenant.service.monitor.entitiy.collection.CollectionManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
