@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+service:
+  monitor:
+    token:
+      scheme: https
+      host: hawkeye-test.icekredit.com
+      path: /api/login.do
+      username: liyang
+      password: b21f212017bb5bc0aadb6d6fecb29ff2
+    path:
+      collection: /postman/postman_collection.json
+      global: /postman/postman_globals.json
+      environment: /postman/postman_environment.json
+
