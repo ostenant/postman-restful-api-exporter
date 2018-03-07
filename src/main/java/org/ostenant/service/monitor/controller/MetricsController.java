@@ -146,14 +146,14 @@ public class MetricsController {
                     Map<String, Object> targetMap = new LinkedHashMap<>();
                     Map<String, Object> flatMap = flatMap(responseMap, targetMap);
 
-                    addResult(resultQueue, itemDetail.getName());
+                    addResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName());
 
                     for (Map.Entry<String, Object> execEntry : execMap.entrySet()) {
                         String execKey = execEntry.getKey();
                         String exec = (String) execEntry.getValue();
                         boolean containsKey = flatMap.containsKey(execKey);
                         if (!containsKey) {
-                            addFailedResult(resultQueue, itemDetail.getName());
+                            addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName());
                             failedTestCases.getAndIncrement();
                             break;
                         }
@@ -163,10 +163,10 @@ public class MetricsController {
                             Integer resInteger = (Integer) res;
                             Integer execInteger = Integer.parseInt(exec);
                             if (resInteger.intValue() != execInteger.intValue()) {
-                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+                                addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, res);
 
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
-                                        itemDetail.getName(), execKey, exec, execKey, res);
+                                        collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
                                 break;
                             }
@@ -174,7 +174,7 @@ public class MetricsController {
                             Long resLong = (Long) res;
                             Long execLong = Long.parseLong(exec);
                             if (resLong.longValue() != execLong.longValue()) {
-                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+                                addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, res);
 
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
@@ -185,7 +185,7 @@ public class MetricsController {
                             Double resDouble = (Double) res;
                             Double execDouble = Double.parseDouble(exec);
                             if (resDouble.doubleValue() != execDouble.doubleValue()) {
-                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+                                addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, res);
 
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
@@ -196,7 +196,7 @@ public class MetricsController {
                             Boolean resBoolean = (Boolean) res;
                             Boolean execBoolean = Boolean.parseBoolean(exec);
                             if (!resBoolean.equals(execBoolean)) {
-                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+                                addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, res);
 
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
@@ -205,7 +205,7 @@ public class MetricsController {
                             }
                         } else {
                             if (!Objects.equals(exec, res)) {
-                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+                                addFailedResult(resultQueue, collectionItem.getName() + "-" + itemDetail.getName(), execKey, exec, res);
 
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
