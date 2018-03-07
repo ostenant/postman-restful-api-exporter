@@ -5,6 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ostenant.service.monitor.config.ExporterPathProperties;
 import org.ostenant.service.monitor.config.TokenProperties;
+import org.ostenant.service.monitor.entitiy.ExporterResult;
 import org.ostenant.service.monitor.entitiy.MapBean;
 import org.ostenant.service.monitor.entitiy.MethodType;
 import org.ostenant.service.monitor.entitiy.TokenResponse;
@@ -29,15 +30,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 public class MetricsController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Semaphore semaphore = new Semaphore(20);
+    private final ExecutorService executor = Executors.newFixedThreadPool(50);
 
     private final CollectionManager collectionManager;
     private final RestTemplate restTemplate;
@@ -54,8 +55,6 @@ public class MetricsController {
         this.objectMapper = objectMapper;
         this.tokenProperties = tokenProperties;
     }
-
-    private ExecutorService executor = Executors.newFixedThreadPool(50);
 
     @GetMapping("/metrics")
     @SuppressWarnings("unchecked")
@@ -76,7 +75,6 @@ public class MetricsController {
         AtomicInteger failedTestCases = new AtomicInteger();
 
         List<CollectionItem> collectionItemList = collectionManager.getItem();
-
         int totalTestCases = 0;
         for (CollectionItem aCollectionItemList : collectionItemList) {
             List<CollectionItem.CollectionItemDetail> itemDetailList = aCollectionItemList.getItemDetails();
@@ -86,11 +84,12 @@ public class MetricsController {
         }
 
         CountDownLatch countDownLatch = new CountDownLatch(totalTestCases);
+        ConcurrentLinkedQueue<ExporterResult> resultQueue = new ConcurrentLinkedQueue<>();
 
         for (CollectionItem collectionItem : collectionItemList) {
             List<CollectionItem.CollectionItemDetail> itemDetailList = collectionItem.getItemDetails();
-
             for (CollectionItem.CollectionItemDetail itemDetail : itemDetailList) {
+                semaphore.acquire();
                 executor.execute(() -> {
                     CollectionItemRequest request = itemDetail.getRequest();
                     CollectionItemEvent event = itemDetail.getEvents().get(0);
@@ -100,7 +99,6 @@ public class MetricsController {
                     String method = request.getMethod();
                     List<Map<String, String>> headerListMap = request.getHeader();
                     String body = request.getBody().getRaw();
-
                     HttpMethod httpMethod = HttpMethod.GET;
                     switch (method) {
                         case MethodType.POST:
@@ -128,16 +126,16 @@ public class MetricsController {
                         }
                     }
 
+                    URI uri = URI.create(url);
                     final ResponseEntity<String> responseEntity = restTemplate.exchange(
                             new RequestEntity<>(
                                     body,
                                     headers,
                                     httpMethod,
-                                    URI.create(url)
+                                    uri
                             ), String.class);
 
                     final String responseBody = responseEntity.getBody();
-
                     Map<String, Object> responseMap = null;
                     try {
                         responseMap = objectMapper.readValue(responseBody, Map.class);
@@ -148,12 +146,14 @@ public class MetricsController {
                     Map<String, Object> targetMap = new LinkedHashMap<>();
                     Map<String, Object> flatMap = flatMap(responseMap, targetMap);
 
+                    addResult(resultQueue, itemDetail.getName());
+
                     for (Map.Entry<String, Object> execEntry : execMap.entrySet()) {
                         String execKey = execEntry.getKey();
                         String exec = (String) execEntry.getValue();
-
                         boolean containsKey = flatMap.containsKey(execKey);
                         if (!containsKey) {
+                            addFailedResult(resultQueue, itemDetail.getName());
                             failedTestCases.getAndIncrement();
                             break;
                         }
@@ -163,6 +163,8 @@ public class MetricsController {
                             Integer resInteger = (Integer) res;
                             Integer execInteger = Integer.parseInt(exec);
                             if (resInteger.intValue() != execInteger.intValue()) {
+                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
@@ -172,6 +174,8 @@ public class MetricsController {
                             Long resLong = (Long) res;
                             Long execLong = Long.parseLong(exec);
                             if (resLong.longValue() != execLong.longValue()) {
+                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
@@ -181,6 +185,8 @@ public class MetricsController {
                             Double resDouble = (Double) res;
                             Double execDouble = Double.parseDouble(exec);
                             if (resDouble.doubleValue() != execDouble.doubleValue()) {
+                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
@@ -190,6 +196,8 @@ public class MetricsController {
                             Boolean resBoolean = (Boolean) res;
                             Boolean execBoolean = Boolean.parseBoolean(exec);
                             if (!resBoolean.equals(execBoolean)) {
+                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
@@ -197,6 +205,8 @@ public class MetricsController {
                             }
                         } else {
                             if (!Objects.equals(exec, res)) {
+                                addFailedResult(resultQueue, itemDetail.getName(), execKey, exec, res);
+
                                 logger.warn("测试用例: [{}]; 期待结果: [{}={}]; 实际结果: [{}={}] ",
                                         itemDetail.getName(), execKey, exec, execKey, res);
                                 failedTestCases.getAndIncrement();
@@ -206,32 +216,38 @@ public class MetricsController {
                     }
                     allTestCases.getAndIncrement();
                     countDownLatch.countDown();
+                    semaphore.release();
                 });
-
             }
         }
 
         try {
             countDownLatch.await();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+        } catch (Exception ex) {
+            logger.error("中断异常：", ex);
+            throw ex;
         }
 
-        StringBuilder builder = new StringBuilder();
-
+        resp.setContentType("text/plain;charset=utf-8");
         PrintWriter writer = resp.getWriter();
-        builder.append("postman_restful_api_exporter{test=\"all_test_cases\",code=\"200\",handler=\"postman\",method=\"get\"} ").append(String.valueOf(allTestCases.get()));
-        writer.println(builder.toString());
-        builder.setLength(0);
+        resultQueue.forEach(writer::println);
+    }
 
-        builder.append("postman_restful_api_exporter{test=\"successful_test_cases\",code=\"200\",handler=\"postman\",method=\"get\"} ").append(String.valueOf(allTestCases.get() - failedTestCases.get()));
-        writer.println(builder.toString());
-        builder.setLength(0);
+    private void addResult(ConcurrentLinkedQueue<ExporterResult> resultQueue, String testCase) {
+        ExporterResult result = new ExporterResult(testCase, ExporterResult.OKAY);
+        resultQueue.offer(result);
+    }
 
-        builder.append("postman_restful_api_exporter{test=\"failed_test_cases\",code=\"200\",handler=\"postman\",method=\"get\"} ").append(String.valueOf(failedTestCases.get()));
-        writer.println(builder.toString());
-        builder.setLength(0);
+    private void addFailedResult(ConcurrentLinkedQueue<ExporterResult> resultQueue, String testCase) {
+        ExporterResult result = new ExporterResult(testCase, ExporterResult.FAILED);
+        resultQueue.offer(result);
+    }
+
+    private void addFailedResult(ConcurrentLinkedQueue<ExporterResult> resultQueue, String testCase, String execKey, String exec, Object res) {
+        ExporterResult result = new ExporterResult(testCase, ExporterResult.FAILED);
+        result.getExpectedMap().put(execKey, exec);
+        result.getActualMap().put(execKey, String.valueOf(res));
+        resultQueue.offer(result);
     }
 
     @SuppressWarnings("unchecked")
@@ -248,12 +264,10 @@ public class MetricsController {
             List<String> prefixList = first.getPrefixList();
             Map<String, Object> valueMap = first.getValueMap();
             Set<String> keySet = valueMap.keySet();
-
             for (String key : keySet) {
                 Object valueObject = valueMap.get(key);
                 List<String> prefixListCopy = new ArrayList<>(prefixList);
                 prefixListCopy.add(key);
-
                 if (valueObject instanceof Map) {
                     Map<String, Object> subMap = (Map<String, Object>) valueObject;
                     MapBean subMapBean = new MapBean();
