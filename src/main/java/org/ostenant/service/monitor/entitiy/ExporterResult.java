@@ -1,7 +1,5 @@
 package org.ostenant.service.monitor.entitiy;
 
-import com.alibaba.fastjson.JSONObject;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,23 +63,32 @@ public class ExporterResult implements Serializable {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(uri);
-        JSONObject jsonObject = new JSONObject();
+
+        if (code == FAILED) {
+            builder.append("{");
+        }
+
         if (expectedMap.size() > 0) {
             for (Map.Entry<String, String> entry : expectedMap.entrySet()) {
-                jsonObject.put("expect[" + entry.getKey() + "]", entry.getValue());
+                builder.append("expect_" + entry.getKey().replace(".", "__")).append("=");
+                builder.append("\"" + entry.getValue() + "\"");
             }
+        }
+
+        if (code == FAILED) {
+            builder.append(",");
         }
 
         if (actualMap.size() > 0) {
             for (Map.Entry<String, String> entry : actualMap.entrySet()) {
-                jsonObject.put("actual[" + entry.getKey() + "]", entry.getValue());
+                builder.append("actual_" + entry.getKey().replace(".", "__")).append("=");
+                builder.append("\"" + entry.getValue() + "\"");
             }
         }
 
-        if (jsonObject.size() > 0) {
-            builder.append(jsonObject.toString());
+        if (code == FAILED) {
+            builder.append("}");
         }
-
         builder.append(" ").append(code);
         return builder.toString();
     }

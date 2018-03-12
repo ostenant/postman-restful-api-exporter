@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MetricsController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
-    private final Semaphore semaphore = new Semaphore(20);
+    private final Semaphore semaphore = new Semaphore(40);
     private final ExecutorService executor = Executors.newFixedThreadPool(50);
 
     private final CollectionManager collectionManager;
